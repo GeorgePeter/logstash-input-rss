@@ -1,5 +1,7 @@
 source 'https://rubygems.org'
 
+gem 'nokogiri'
+
 gemspec
 
 logstash_path = ENV["LOGSTASH_PATH"] || "../../logstash"

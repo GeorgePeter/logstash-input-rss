@@ -5,6 +5,7 @@ require "socket" # for Socket.gethostname
 require "stud/interval"
 require "faraday"
 require "rss"
+require 'nokogiri'
 
 # Run command line tools and capture the whole output as an event.
 #
@@ -25,6 +26,9 @@ class LogStash::Inputs::Rss < LogStash::Inputs::Base
 
   # Interval to run the command. Value is in seconds.
   config :interval, :validate => :number, :required => true
+
+  #
+  config :filter_tags, :validate => :array
 
   public
   def register
@@ -61,8 +65,16 @@ class LogStash::Inputs::Rss < LogStash::Inputs::Base
 
   def handle_response(response, queue)
     body = response.body
+    doc = Nokogiri::HTML(body)
+    @filter_tags.each do |item|
+      # Put each item into an event
+      if doc.at(item)
+        doc.at(item).unlink
+      end  
+    end
+    nu_body = doc.to_html
     begin
-      feed = RSS::Parser.parse(body)
+      feed = RSS::Parser.parse(nu_body)
       feed.items.each do |item|
         # Put each item into an event
         @logger.debug("Item", :item => item.author)
@@ -109,11 +121,21 @@ class LogStash::Inputs::Rss < LogStash::Inputs::Base
     end
   end
   def handle_rss_response(queue, item)
-    @codec.decode(item.description) do |event|
+    if ! item.content_encoded.nil?
+      content = item.content_encoded
+    else
+      content = item.description
+    end
+    @codec.decode(content) do |event|
       event.set("Feed",  @url)
       event.set("published", item.pubDate)
       event.set("title", item.title)
       event.set("link", item.link)
+      tags = Array.new
+      item.categories.each do |category|
+        tags.push(category.content)
+      end  
+      event.set("tags", tags.join(","))
       event.set("author", item.author)
       decorate(event)
       queue << event

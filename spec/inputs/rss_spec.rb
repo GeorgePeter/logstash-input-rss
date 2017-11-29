@@ -1,4 +1,3 @@
-# encoding: utf-8
 require "logstash/devutils/rspec/spec_helper"
 require "logstash/inputs/rss"
 require 'ostruct'
@@ -17,7 +16,8 @@ describe LogStash::Inputs::Rss do
     let(:config) do
       {
         "url" => "http://www.example.com/foo.rss",
-        "interval" => 10
+        "interval" => 10,
+        "filter_tags" => ['image']
       }
     end
 
