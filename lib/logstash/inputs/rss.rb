@@ -66,12 +66,14 @@ class LogStash::Inputs::Rss < LogStash::Inputs::Base
   def handle_response(response, queue)
     body = response.body
     doc = Nokogiri::HTML(body)
-    @filter_tags.each do |item|
-      # Put each item into an event
-      if doc.at(item)
-        doc.at(item).unlink
-      end  
-    end
+    if ! @filter_tags.nil?
+      @filter_tags.each do |item|
+        # Put each item into an event
+        if doc.at(item)
+          doc.at(item).unlink
+        end  
+      end
+    end  
     nu_body = doc.to_html
     begin
       feed = RSS::Parser.parse(nu_body)
