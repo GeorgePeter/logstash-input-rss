@@ -16,8 +16,7 @@ describe LogStash::Inputs::Rss do
     let(:config) do
       {
         "url" => "http://www.example.com/foo.rss",
-        "interval" => 10,
-        "filter_tags" => ['image']
+        "interval" => 10
       }
     end
 

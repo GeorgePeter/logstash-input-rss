@@ -5,7 +5,6 @@ require "socket" # for Socket.gethostname
 require "stud/interval"
 require "faraday"
 require "rss"
-require 'nokogiri'
 
 # Run command line tools and capture the whole output as an event.
 #
@@ -65,18 +64,8 @@ class LogStash::Inputs::Rss < LogStash::Inputs::Base
 
   def handle_response(response, queue)
     body = response.body
-    doc = Nokogiri::HTML(body)
-    if ! @filter_tags.nil?
-      @filter_tags.each do |item|
-        # Put each item into an event
-        if doc.at(item)
-          doc.at(item).unlink
-        end  
-      end
-    end  
-    nu_body = doc.to_html
     begin
-      feed = RSS::Parser.parse(nu_body)
+      feed = RSS::Parser.parse(body)
       feed.items.each do |item|
         # Put each item into an event
         @logger.debug("Item", :item => item.author)
