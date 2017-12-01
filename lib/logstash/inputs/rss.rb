@@ -126,7 +126,7 @@ class LogStash::Inputs::Rss < LogStash::Inputs::Base
       item.categories.each do |category|
         tags.push(category.content)
       end  
-      event.set("tags", tags.join(","))
+      event.set("tags", tags)
       event.set("author", item.author)
       decorate(event)
       queue << event
